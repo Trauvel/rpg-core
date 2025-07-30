@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dev Dashboard</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
+    pre { background: #222; padding: 10px; border-radius: 5px; }
+    button { margin-right: 10px; padding: 8px 12px; background: #444; color: white; border: none; cursor: pointer; }
+    button:hover { background: #666; }
+  </style>
+</head>
+<body>
+  <h1>Dev Dashboard</h1>
+  <div>
+    <button id="reset">Сбросить state</button>
+    <button id="save">Сохранить снапшот</button>
+  </div>
+  <h2>Текущее состояние:</h2>
+  <pre id="state"></pre>
+
+  <script>
+    async function loadState() {
+      const res = await fetch("/dev/state");
+      const json = await res.json();
+      document.getElementById("state").innerText = JSON.stringify(json, null, 2);
+    }
+
+    document.getElementById("reset").addEventListener("click", async () => {
+      await fetch("/dev/reset", { method: "POST" });
+      loadState();
+    });
+
+    document.getElementById("save").addEventListener("click", async () => {
+      await fetch("/dev/save", { method: "POST" });
+      alert("Снапшот сохранён!");
+    });
+
+    loadState();
+    setInterval(loadState, 2000); // автообновление
+  </script>
+</body>
+</html>

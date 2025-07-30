@@ -1,0 +1,26 @@
+import { Server } from "socket.io";
+import { EventBus } from "./core/eventBus";
+import { ActionProcessor } from "./core/actionProcessor";
+import { StateManager } from "./core/stateManager";
+import { GameEvent } from "./contracts/events";
+
+export function setupSocket(io: Server, eventBus: EventBus, actionProcessor: ActionProcessor, stateManager: StateManager) {
+  io.on("connection", (socket) => {
+    console.log("Игрок подключился:", socket.id);
+
+    eventBus.emit(GameEvent.PLAYER_JOIN, {
+      id: socket.id,
+      name: `Player_${socket.id.slice(0, 4)}`
+    });
+
+    socket.on("playerAction", (data) => {
+      actionProcessor.process(data.action, data.data);
+    });
+
+    socket.on("disconnect", () => {
+      eventBus.emit(GameEvent.PLAYER_LEAVE, { id: socket.id });
+    });
+
+    socket.emit(GameEvent.STATE_CHANGED, stateManager.getState());
+  });
+}
