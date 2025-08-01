@@ -8,9 +8,8 @@ export function setupSocket(io: Server, eventBus: EventBus, actionProcessor: Act
   io.on("connection", (socket) => {
     console.log("Игрок подключился:", socket.id);
 
-    eventBus.emit(GameEvent.PLAYER_JOIN, {
-      id: socket.id,
-      name: `Player_${socket.id.slice(0, 4)}`
+    eventBus.emit(GameEvent.USER_JOIN, {
+      id: socket.id
     });
 
     socket.on("playerAction", (data) => {

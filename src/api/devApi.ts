@@ -14,6 +14,12 @@ export function registerDevApi(app: Express, stateManager: StateManager, initial
     app.get("/dev/state", (req, res) => {
         res.json(stateManager.getState());
     });
+    app.get("/dev/publicState", (req, res) => {
+        res.json(stateManager.getPublicState());
+    });
+    app.get("/dev/masterState", (req, res) => {
+        res.json(stateManager.getMasterState());
+    });
 
     // Сбросить состояние в начальное
     app.post("/dev/reset", (req, res) => {

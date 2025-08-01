@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -7,7 +8,7 @@ import { StateManager } from "./core/stateManager";
 import { ActionProcessor } from "./core/actionProcessor";
 import { setupSocket } from "./socket";
 import { registerAllHandlers } from "./handlers";
-import { GameState } from "./contracts/state";
+import { GameState, MasterState, PublicState } from "./contracts/state";
 import { registerAllApi } from "./api";
 
 /**
@@ -20,6 +21,9 @@ import { registerAllApi } from "./api";
      * @see https://expressjs.com/
      */
     const app = express();
+
+    // Разрешаем запросы с фронта (React)
+    app.use(cors());
     /**
      * Создаёт HTTP-сервер для работы с Express
      * @see https://nodejs.org/api/http.html
@@ -57,12 +61,17 @@ import { registerAllApi } from "./api";
      * @property {string} id - Уникальный идентификатор локации
      * @property {string} name - Название локации
      */
-    const initialState: GameState = {
+    const pubicState: PublicState = {
         players: [],
         locations: [
             { id: "forest", name: "Лес" },
             { id: "castle", name: "Замок" }
         ]
+    }
+    const masterState: MasterState = {}
+    const initialState: GameState = {
+        public: pubicState,
+        master: masterState
     };
     /**
      * Инициализирует менеджер состояния с начальным состоянием
@@ -81,7 +90,6 @@ import { registerAllApi } from "./api";
      * (например, загрузку данных из базы или инициализацию кэша)
      */
     await registerAllApi(app, stateManager, initialState);
-
     /**
      * Регистрирует все обработчики событий
      * @param {EventBus} eventBus - Шина событий

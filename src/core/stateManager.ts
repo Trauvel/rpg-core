@@ -1,4 +1,4 @@
-import { GameState } from "../contracts/state";
+import { GameState, MasterState, PublicState } from "../contracts/state";
 
 /**
  * Класс StateManager управляет состоянием приложения
@@ -26,6 +26,14 @@ export class StateManager {
      */
     getState(): GameState {
         return this.state;
+    }
+
+    getPublicState(): PublicState {
+        return this.state.public;
+    }
+
+    getMasterState(): MasterState {
+        return this.state.master;
     }
 
     /**

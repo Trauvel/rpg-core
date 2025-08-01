@@ -5,9 +5,9 @@ import { Server } from "socket.io";
 
 export function registerPlayerHandlers(eventBus: EventBus, stateManager: StateManager, io: Server) {
     eventBus.on(GameEvent.PLAYER_JOIN, (data) => {
-        const state = stateManager.getState();
-        if (!state.players.find((p) => p.id === data.id)) {
-            state.players.push({
+        const pubicState = stateManager.getPublicState();
+        if (!pubicState.players.find((p) => p.id === data.id)) {
+            pubicState.players.push({
                 id: data.id,
                 name: data.name,
                 locationId: "forest", // стартовая локация
@@ -19,14 +19,14 @@ export function registerPlayerHandlers(eventBus: EventBus, stateManager: StateMa
     });
 
     eventBus.on(GameEvent.PLAYER_LEAVE, (data) => {
-        const state = stateManager.getState();
-        state.players = state.players.filter((p) => p.id !== data.id);
+        const pubicState = stateManager.getPublicState();
+        pubicState.players = pubicState.players.filter((p) => p.id !== data.id);
         io.emit(GameEvent.STATE_CHANGED, stateManager.getState());
     });
 
     eventBus.on(GameEvent.PLAYER_MOVE, (data) => {
-        const state = stateManager.getState();
-        const player = state.players.find((p) => p.id === data.playerId);
+        const pubicState = stateManager.getPublicState();
+        const player = pubicState.players.find((p) => p.id === data.playerId);
         if (player) {
             player.locationId = data.to;
         }

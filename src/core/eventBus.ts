@@ -6,13 +6,13 @@ import { GameEvent, EventPayloadMap } from "../contracts/events";
  * @param {EventPayloadMap[K]} data - Данные события соответствующего типа
  * @param {EventContext} ctx - Контекст события для управления состоянием
  */
-type EventHandler<K extends GameEvent> = (data: EventPayloadMap[K], ctx: EventContext) => void;
+type EventHandler<K extends string> = (data: any, ctx: EventContext, event: K) => void;
 
 /**
  * Интерфейс описывает структуру подписчика (обработчика) события
  * @template K - Тип события (должен быть из перечисления GameEvent)
  */
-interface Listener<K extends GameEvent> {
+interface Listener<K extends string> {
     /**
      * Функция-обработчик события
      * @param data Данные события соответствующего типа
@@ -54,7 +54,7 @@ export class EventContext {
      * @description Используется для проверки необходимости продолжения
      * обработки события другими обработчиками
      */
-    isCanceled() {
+    isCanceled(): boolean {
         return this.canceled;
     }
 }
@@ -68,9 +68,23 @@ export class EventBus {
      * Приватное хранилище обработчиков событий
      * Использует маппинг GameEvent → массив обработчиков
      */
-    private listeners: {
-        [K in GameEvent]?: Listener<K>[];
-    } = {};
+    private listeners: Record<string, Listener<any>[]> = {};
+
+    /**
+     * Получает текущий список слушателей событий
+     * @returns {Object} Объект со слушателями или пустой объект
+     * @description Метод возвращает внутреннее хранилище слушателей,
+     * если оно существует, иначе возвращает пустой объект.
+     * Используется для безопасного доступа к данным слушателей,
+     * предотвращая работу с undefined.
+     */
+    getListeners() {
+        if (this.listeners) {
+            return this.listeners;
+        } else {
+            return {};
+        }
+    }
 
     /**
      * Регистрация обработчика события
@@ -80,7 +94,7 @@ export class EventBus {
      * @description Если для события ещё нет обработчиков, создаёт новую запись в хранилище
      * Добавляет переданный обработчик в список подписчиков
      */
-    on<K extends GameEvent>(event: K, handler: EventHandler<K>, priority: number = 0) {
+    on<K extends string>(event: K, handler: EventHandler<K>, priority: number = 0) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event]!.push({ handler, priority });
         // Сортируем по приоритету (меньшее число = раньше)
@@ -93,23 +107,50 @@ export class EventBus {
       * @description Выполняет все зарегистрированные обработчики события,
       * передавая им соответствующие данные
       */
-    emit<K extends GameEvent>(event: K, data: EventPayloadMap[K]) {
+    emit<K extends string>(event: K, data: any) {
         const ctx = new EventContext();
 
-        // Хук "before"
-        this.runHooks(`before:${event}`, data, ctx);
-        if (ctx.isCanceled()) return;
+        for (const key of Object.keys(this.listeners)) {
+            if (this.matches(key, event)) {
+                // "before"
+                if (key === `before:${event}` as GameEvent) {
+                    this.runHooks(key, data, ctx, event);
+                    if (ctx.isCanceled()) return;
+                    continue;
+                }
 
-        // Основные слушатели
-        if (this.listeners[event]) {
-            for (const listener of this.listeners[event]!) {
-                listener.handler(data, ctx);
-                if (ctx.isCanceled()) return; // событие отменено
+                // Основные слушатели
+                for (const listener of this.listeners[key]!) {
+                    listener.handler(data, ctx, event);
+                    if (ctx.isCanceled()) return;
+                }
+
+                // "after"
+                if (key === `after:${event}` as GameEvent) {
+                    this.runHooks(key, data, ctx, event);
+                }
             }
         }
+    }
 
-        // Хук "after"
-        this.runHooks(`after:${event}`, data, ctx);
+    /**
+     * Проверяет соответствие события заданному шаблону
+     * @param pattern Шаблон для сопоставления (может содержать символы *)
+     * @param event Событие для проверки
+     * @returns {boolean} true, если событие соответствует шаблону, иначе false
+     * @description Реализует гибкий механизм сопоставления событий:
+     * - "*" - совпадает со всеми событиями
+     * - "player:*" - совпадает со всеми событиями в пространстве имен player
+     * - "inventory:add" - точное совпадение
+     */
+    private matches(pattern: string, event: string): boolean {
+        // Поддержка "*", "player:*", "inventory:add"
+        if (pattern === "*") return true;
+        if (pattern.endsWith("*")) {
+            const ns = pattern.slice(0, -1);
+            return event.startsWith(ns);
+        }
+        return pattern === event;
     }
 
     /**
@@ -125,10 +166,10 @@ export class EventBus {
      * так как мы явно уверены в их существовании после проверки условия.
      * Это позволяет избежать дублирования проверки в цикле.
      */
-    private runHooks(hookEvent: string, data: any, ctx: EventContext) {
+    private runHooks<K extends string>(hookEvent: string, data: any, ctx: EventContext, event: K) {
         if (this.listeners[hookEvent as GameEvent]) {
             for (const listener of this.listeners[hookEvent as GameEvent]!) {
-                listener.handler(data, ctx);
+                listener.handler(data, ctx, event);
                 if (ctx.isCanceled()) return;
             }
         }
