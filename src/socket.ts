@@ -6,13 +6,12 @@ import { GameEvent } from "./contracts/events";
 
 export function setupSocket(io: Server, eventBus: EventBus, actionProcessor: ActionProcessor, stateManager: StateManager) {
   io.on("connection", (socket) => {
-    console.log("Игрок подключился:", socket.id);
-
-    eventBus.emit(GameEvent.USER_JOIN, {
-      id: socket.id
+    eventBus.emit(GameEvent.PLAYER_CONNECT, {
+      socket_id: socket.id,
     });
 
     socket.on("playerAction", (data) => {
+      data.data.socket_id = socket.id;
       actionProcessor.process(data.action, data.data);
     });
 

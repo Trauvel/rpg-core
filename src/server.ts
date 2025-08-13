@@ -77,7 +77,7 @@ import { registerAllApi } from "./api";
      * Инициализирует менеджер состояния с начальным состоянием
      * @see StateManager
      */
-    const stateManager = new StateManager(initialState);
+    const stateManager = new StateManager(initialState, io);
 
     /**
      * Регистрация всех API-маршрутов в Express-приложении
@@ -98,7 +98,6 @@ import { registerAllApi } from "./api";
      * @description Автоматически подключает модули обработки событий
      */
     await registerAllHandlers(eventBus, stateManager, io);
-
     /**
      * Настраивает веб-сокеты
      * @param {Server} io - Сервер Socket.IO

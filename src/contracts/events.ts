@@ -1,10 +1,7 @@
 import { GameState } from "./state";
 
 export enum GameEvent {
-    // Пользовательские события
-    USER_JOIN = "user:join",
-
-    // Игроки
+    PLAYER_CONNECT = "player:connect",
     PLAYER_ACTION = "player:action",      // входной WS (общее действие)
     PLAYER_MOVE = "player:move",
     PLAYER_JOIN = "player:join",
@@ -25,9 +22,7 @@ export enum GameEvent {
 // Типизация payload'ов для каждого события
 export interface EventPayloadMap {
     // Пользовательские события
-    [GameEvent.USER_JOIN]: {id: string}
-
-    // Игроки
+    [GameEvent.PLAYER_CONNECT]: {id: string}
     [GameEvent.PLAYER_ACTION]: { action: GameEvent; data: any };
     [GameEvent.PLAYER_MOVE]: { playerId: string; to: string };
     [GameEvent.PLAYER_JOIN]: { id: string, name: string };
