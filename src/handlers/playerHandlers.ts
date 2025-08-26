@@ -1,3 +1,4 @@
+import { PlayerMock } from "../api/data/mock/player";
 import { GameEvent } from "../contracts/events";
 import { EventBus } from "../core/eventBus";
 import { StateManager } from "../core/stateManager";
@@ -20,13 +21,33 @@ export function registerPlayerHandlers(eventBus: EventBus, stateManager: StateMa
                 p = {
                     ...p,
                     name: data.name,
-                    locationId: "forest", // стартовая локация
-                    inventory: [],
-                    hp: 10
+                    ...PlayerMock
                 }
             }
             return p;
         });
+    });
+
+    eventBus.on(GameEvent.PLAYER_UPDATE, (data) => {
+        const publicState = stateManager.getPublicState();
+        const playerIndex = publicState.players.findIndex((p) => p.id === data.playerId);
+
+        if (playerIndex !== -1) {
+            // Обновляем данные персонажа, сохраняя существующие поля
+            publicState.players[playerIndex] = {
+                ...publicState.players[playerIndex],
+                ...data.playerData
+            };
+
+            // Логируем обновление
+            if (!publicState.logs) publicState.logs = [];
+            publicState.logs.push(`Персонаж ${publicState.players[playerIndex].name} обновлен`);
+
+            // Ограничиваем количество логов
+            if (publicState.logs.length > 50) {
+                publicState.logs = publicState.logs.slice(-50);
+            }
+        }
     });
 
     eventBus.on(GameEvent.PLAYER_LEAVE, (data) => {

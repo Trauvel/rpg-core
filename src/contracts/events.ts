@@ -6,6 +6,7 @@ export enum GameEvent {
     PLAYER_MOVE = "player:move",
     PLAYER_JOIN = "player:join",
     PLAYER_LEAVE = "player:leave",
+    PLAYER_UPDATE = "player:update",      // обновление данных персонажа
 
     // Состояние
     STATE_CHANGED = "state:changed",
@@ -27,6 +28,7 @@ export interface EventPayloadMap {
     [GameEvent.PLAYER_MOVE]: { playerId: string; to: string };
     [GameEvent.PLAYER_JOIN]: { id: string, name: string };
     [GameEvent.PLAYER_LEAVE]: { id: string };
+    [GameEvent.PLAYER_UPDATE]: { playerId: string; playerData: any }; // данные персонажа
 
     // Состояние
     [GameEvent.STATE_CHANGED]: GameState; // Отправляем целый state (пока без строгой типизации)
