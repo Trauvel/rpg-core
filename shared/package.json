@@ -1,0 +1,20 @@
+{
+  "name": "@rpg-platform/shared",
+  "version": "1.0.0",
+  "description": "Shared типы и утилиты для RPG Platform",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./auth": "./auth/jwt.ts",
+    "./types": "./types/events.ts"
+  },
+  "dependencies": {
+    "argon2": "^0.44.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5"
+  }
+}
+

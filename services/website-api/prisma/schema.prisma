@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  username     String        @unique
+  password     String
+  gameSessions GameSession[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model GameSession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socketId     String?  // Socket ID текущего соединения
+  isActive     Boolean  @default(true)
+  characterName String?  // Имя персонажа в игре
+  
+  // Игровое состояние (все данные персонажа)
+  level        Int      @default(1)
+  experience   Int      @default(0)
+  hp           Int      @default(10)
+  maxHp        Int      @default(10)
+  locationId   String?  // Текущая локация
+  
+  // Характеристики
+  strength     Int      @default(10)
+  dexterity    Int      @default(10)
+  constitution Int      @default(10)
+  intelligence Int      @default(10)
+  wisdom       Int      @default(10)
+  charisma     Int      @default(10)
+  
+  // Прочие данные
+  class        String?  @default("Adventurer")
+  race         String?  @default("Human")
+  armorClass   Int      @default(10)
+  initiative   Int      @default(0)
+  speed        Int      @default(30)
+  
+  // Инвентарь (JSON массив)
+  inventory    String   @default("[]")
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([isActive])
+}

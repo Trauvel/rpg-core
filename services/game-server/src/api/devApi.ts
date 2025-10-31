@@ -2,7 +2,7 @@ import { Express } from "express";
 import path from "path";
 import fs from "fs";
 import { StateManager } from "../core/stateManager";
-import { GameState } from "../contracts/state";
+import { GameState } from '@rpg-platform/shared';
 
 export function registerDevApi(app: Express, stateManager: StateManager, initialState: GameState) {
     // Рендер HTML панели
@@ -29,7 +29,11 @@ export function registerDevApi(app: Express, stateManager: StateManager, initial
 
     // Сохранить снапшот в файл
     app.post("/dev/save", (req, res) => {
-        fs.writeFileSync("snapshot.json", JSON.stringify(stateManager.getState(), null, 2));
-        res.json({ ok: true });
+        try {
+            fs.writeFileSync("snapshot.json", JSON.stringify(stateManager.getState(), null, 2));
+            res.json({ ok: true });
+        } catch (error) {
+            res.status(500).json({ error: 'Ошибка при сохранении файла' });
+        }
     });
 }

@@ -1,0 +1,31 @@
+{
+  "name": "@rpg-platform/game-server",
+  "version": "1.0.0",
+  "description": "Game Server - игровое ядро с WebSocket и игровой логикой",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@rpg-platform/shared": "*",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "glob": "^11.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/glob": "^8.1.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^24.1.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  }
+}
+

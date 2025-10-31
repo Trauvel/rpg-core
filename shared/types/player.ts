@@ -1,5 +1,6 @@
 export interface Player {
     id?: string;
+    userId?: string;  // ID пользователя из БД
     name?: string;
     locationId?: string;
     inventory?: string[]; // список id предметов
@@ -25,6 +26,7 @@ export interface Location {
     name: string;
     description?: string;
     locations?: Location[];
+    traps?: Trap[];
 }
 
 export interface Trap {

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  website-api:
+    build:
+      context: ./services/website-api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - DATABASE_URL=file:./prisma/dev.db
+    volumes:
+      - ./services/website-api/prisma:/app/prisma
+    restart: unless-stopped
+
+  game-server:
+    build:
+      context: ./services/game-server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - GAME_PORT=3001
+    restart: unless-stopped
+

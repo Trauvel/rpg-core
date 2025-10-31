@@ -1,27 +1,23 @@
 {
-  "name": "rpg-core",
+  "name": "rpg-platform",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "RPG Platform - микросервисная архитектура",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "shared"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --watch src --exec ts-node src/server.ts"
+    "dev:website": "cd services/website-api && npm run dev",
+    "dev:game": "cd services/game-server && npm run dev",
+    "dev": "concurrently \"npm run dev:website\" \"npm run dev:game\"",
+    "install:all": "npm install && npm run install:website && npm run install:game && npm run install:shared",
+    "install:website": "cd services/website-api && npm install",
+    "install:game": "cd services/game-server && npm install",
+    "install:shared": "cd shared && npm install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/glob": "^8.1.0",
-    "@types/node": "^24.1.0",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "glob": "^11.0.3",
-    "socket.io": "^4.8.1"
+    "concurrently": "^8.2.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

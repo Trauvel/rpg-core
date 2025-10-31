@@ -2,14 +2,16 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './swagger/config';
 
 import { EventBus } from "./core/eventBus";
 import { StateManager } from "./core/stateManager";
 import { ActionProcessor } from "./core/actionProcessor";
 import { setupSocket } from "./socket";
-import { registerAllHandlers } from "./handlers";
+import { registerAllHandlers } from "./handlers/index";
 import { GameState, MasterState, PublicState } from "./contracts/state";
-import { registerAllApi } from "./api";
+import { registerAllApi } from "./api/index";
 
 /**
  * Асинхронная точка входа приложения
@@ -24,6 +26,13 @@ import { registerAllApi } from "./api";
 
     // Разрешаем запросы с фронта (React)
     app.use(cors());
+    // Добавляем парсинг JSON
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    // Swagger UI
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
     /**
      * Создаёт HTTP-сервер для работы с Express
      * @see https://nodejs.org/api/http.html
@@ -64,7 +73,16 @@ import { registerAllApi } from "./api";
     const pubicState: PublicState = {
         players: [],
         locations: [
-            { id: "forest", name: "Лес" },
+            {
+                id: "forest",
+                name: "Лес",
+                locations: [
+                    {
+                        id: "village",
+                        name: "Деревня",
+                    }
+                ]
+            },
             { id: "castle", name: "Замок" }
         ]
     }
