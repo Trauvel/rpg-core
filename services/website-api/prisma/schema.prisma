@@ -50,9 +50,58 @@ model GameSession {
   // Инвентарь (JSON массив)
   inventory    String   @default("[]")
   
+  // Гибкие данные персонажа для будущей интеграции с D&D 5e SRD
+  // Будет содержать: заклинания, черты, умения, экипировку и т.д.
+  characterData String? // JSON строка для SQLite, позже будет Json/Jsonb в PostgreSQL
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
   @@index([userId])
   @@index([isActive])
+}
+
+// Справочные данные из D&D 5e SRD
+// Пока структура подготовлена для будущей загрузки данных
+model DndClass {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  hitDie      Int      // Количество костей хитов (например, 8 для Fighter)
+  description String?  // Описание класса
+  subclasses  String   @default("[]") // JSON массив подклассов
+  features    String?  // JSON объект с чертами класса
+  spellcasting Boolean @default(false) // Может ли класс использовать заклинания
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([name])
+}
+
+model DndRace {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  // Описание расы
+  subraces    String   @default("[]") // JSON массив подрас
+  traits      String?  // JSON объект с чертами расы
+  abilityScoreBonuses String? // JSON объект с бонусами к характеристикам
+  speed       Int?     // Базовая скорость
+  size        String?  // Размер (Small, Medium, Large)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([name])
+}
+
+// Сохранения игровых комнат
+model RoomSnapshot {
+  id          String   @id @default(cuid())
+  roomCode    String
+  masterId    String
+  userId      String   // Создатель сохранения (обычно мастер)
+  state       String   // JSON состояние игры
+  gameStarted Boolean
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([roomCode])
 }

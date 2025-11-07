@@ -1,3 +1,5 @@
+import { CharacterData } from './srd';
+
 export interface Player {
     id?: string;
     userId?: string;  // ID пользователя из БД
@@ -14,11 +16,14 @@ export interface Player {
     intelligence?: number,
     wisdom?: number,
     charisma?: number,
-    class?: string,
-    race?: string,
+    class?: string, // Пока строка, позже будет ссылка на DndClass
+    race?: string,  // Пока строка, позже будет ссылка на DndRace
     armorClass?: number,
     initiative?: number,
-    speed?: number
+    speed?: number,
+    // Дополнительные данные персонажа для D&D 5e SRD
+    // Будет содержать: заклинания, черты, умения, экипировку
+    characterData?: CharacterData;
 }
 
 export interface Location {

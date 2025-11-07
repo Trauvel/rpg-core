@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { GameSessionService } from "../services/gameSessionService";
 import { authMiddleware, AuthenticatedRequest } from "../middleware/auth";
+import { gameServerClient } from "../services/gameServerClient";
 
 export function registerGameSessionApi(app: Express) {
   /**
@@ -45,15 +46,21 @@ export function registerGameSessionApi(app: Express) {
   app.post('/api/game-session/create', authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
       const { characterName } = req.body;
-      const session = await GameSessionService.createSession({
+      const token = req.headers.authorization!.replace('Bearer ', '');
+      
+      // Обращаемся к game-server через клиент
+      const response = await gameServerClient.createSession(token, characterName);
+      
+      // Также сохраняем метаданные сессии в БД (id, userId, isActive)
+      const dbSession = await GameSessionService.createSession({
         userId: req.user!.userId,
         characterName,
       });
 
-      res.json({ session });
-    } catch (error) {
+      res.json({ session: response.session });
+    } catch (error: any) {
       console.error('Error creating game session:', error);
-      res.status(500).json({ error: 'Ошибка создания игровой сессии' });
+      res.status(500).json({ error: error.message || 'Ошибка создания игровой сессии' });
     }
   });
 
@@ -90,16 +97,19 @@ export function registerGameSessionApi(app: Express) {
    */
   app.get('/api/game-session/active', authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
-      const session = await GameSessionService.getActiveSession(req.user!.userId);
+      const token = req.headers.authorization!.replace('Bearer ', '');
+      
+      // Обращаемся к game-server через клиент
+      const response = await gameServerClient.getActiveSession(token);
 
-      if (!session) {
+      res.json({ session: response.session });
+    } catch (error: any) {
+      console.error('Error getting active session:', error);
+      // Если game-server вернул 404, возвращаем 404
+      if (error.message?.includes('404')) {
         return res.status(404).json({ error: 'Активная сессия не найдена' });
       }
-
-      res.json({ session });
-    } catch (error) {
-      console.error('Error getting active session:', error);
-      res.status(500).json({ error: 'Ошибка получения сессии' });
+      res.status(500).json({ error: error.message || 'Ошибка получения сессии' });
     }
   });
 
@@ -199,18 +209,20 @@ export function registerGameSessionApi(app: Express) {
     try {
       const { sessionId } = req.params;
       const updateData = req.body;
+      const token = req.headers.authorization!.replace('Bearer ', '');
 
       // Проверяем, что сессия принадлежит пользователю
-      const session = await GameSessionService.getActiveSession(req.user!.userId);
-      if (!session || session.id !== sessionId) {
+      if (sessionId !== req.user!.userId) {
         return res.status(403).json({ error: 'Доступ запрещён' });
       }
 
-      const updatedSession = await GameSessionService.updateGameData(sessionId, updateData);
-      res.json({ session: updatedSession });
-    } catch (error) {
+      // Обращаемся к game-server через клиент
+      const response = await gameServerClient.updateSession(token, sessionId, updateData);
+
+      res.json({ session: response.session });
+    } catch (error: any) {
       console.error('Error updating session:', error);
-      res.status(500).json({ error: 'Ошибка обновления сессии' });
+      res.status(500).json({ error: error.message || 'Ошибка обновления сессии' });
     }
   });
 
@@ -253,16 +265,19 @@ export function registerGameSessionApi(app: Express) {
    */
   app.get('/api/game-session/state/load', authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
-      const state = await GameSessionService.loadPlayerState(req.user!.userId);
+      const token = req.headers.authorization!.replace('Bearer ', '');
+      
+      // Обращаемся к game-server через клиент
+      const response = await gameServerClient.getPlayerState(token);
 
-      if (!state) {
+      res.json({ state: response.state });
+    } catch (error: any) {
+      console.error('Error loading player state:', error);
+      // Если game-server вернул 404, возвращаем 404
+      if (error.message?.includes('404')) {
         return res.status(404).json({ error: 'Активная сессия не найдена' });
       }
-
-      res.json({ state });
-    } catch (error) {
-      console.error('Error loading player state:', error);
-      res.status(500).json({ error: 'Ошибка загрузки состояния' });
+      res.status(500).json({ error: error.message || 'Ошибка загрузки состояния' });
     }
   });
 
@@ -329,16 +344,19 @@ export function registerGameSessionApi(app: Express) {
         return res.status(400).json({ error: 'Состояние не предоставлено' });
       }
 
-      const success = await GameSessionService.savePlayerState(req.user!.userId, state);
+      const token = req.headers.authorization!.replace('Bearer ', '');
+      
+      // Обращаемся к game-server через клиент
+      const response = await gameServerClient.savePlayerState(token, state);
 
-      if (!success) {
+      res.json({ success: response.success });
+    } catch (error: any) {
+      console.error('Error saving player state:', error);
+      // Если game-server вернул 404, возвращаем 404
+      if (error.message?.includes('404')) {
         return res.status(404).json({ error: 'Активная сессия не найдена' });
       }
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error saving player state:', error);
-      res.status(500).json({ error: 'Ошибка сохранения состояния' });
+      res.status(500).json({ error: error.message || 'Ошибка сохранения состояния' });
     }
   });
 }

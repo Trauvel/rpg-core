@@ -1,4 +1,5 @@
 import prisma from '../database/prisma';
+import { CharacterData } from '@rpg-platform/shared';
 
 export interface CreateSessionData {
   userId: string;
@@ -25,6 +26,7 @@ export interface PlayerState {
   armorClass?: number;
   initiative?: number;
   speed?: number;
+  characterData?: CharacterData; // Дополнительные данные для D&D 5e SRD
 }
 
 export class GameSessionService {
@@ -154,12 +156,18 @@ export class GameSessionService {
       speed?: number;
       inventory?: string[];
       characterName?: string;
+      characterData?: CharacterData;
     }
   ) {
     // Преобразуем inventory массив в JSON строку
     const updateData: any = { ...data };
     if (data.inventory !== undefined) {
       updateData.inventory = JSON.stringify(data.inventory);
+    }
+    
+    // Преобразуем characterData объект в JSON строку
+    if (data.characterData !== undefined) {
+      updateData.characterData = JSON.stringify(data.characterData);
     }
 
     return await prisma.gameSession.update({
@@ -214,6 +222,7 @@ export class GameSessionService {
       armorClass: session.armorClass,
       initiative: session.initiative,
       speed: session.speed,
+      characterData: session.characterData ? JSON.parse(session.characterData) : undefined,
     };
   }
 

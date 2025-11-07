@@ -28,7 +28,7 @@ export class PersistenceService {
       }
 
       const data = await response.json();
-      return data.state || null;
+      return (data as any).state || null;
     } catch (error) {
       console.error('Error loading player state:', error);
       return null;

@@ -1,10 +1,11 @@
 import { Express } from "express";
 import { StateManager } from "../core/stateManager";
 import { GameState } from '@rpg-platform/shared';
+import { Server } from "socket.io";
 import { glob } from "glob";
 import path from "path";
 
-export async function registerAllApi(app: Express, stateManager: StateManager, initialState: GameState) {
+export async function registerAllApi(app: Express, stateManager: StateManager, initialState: GameState, io: Server) {
   // Ищем все ts-файлы кроме index.ts
   const files = await glob(path.join(__dirname, "*.ts").replace(/\\/g, "/"), {
     ignore: ["**/index.ts"]
@@ -19,6 +20,9 @@ export async function registerAllApi(app: Express, stateManager: StateManager, i
         // sessionApi не требует дополнительных параметров
         if (exportKey === "registerSessionApi") {
           module[exportKey](app);
+        } else if (exportKey === "registerRoomApi") {
+          // roomApi требует io
+          module[exportKey](app, io);
         } else {
           module[exportKey](app, stateManager, initialState);
         }
